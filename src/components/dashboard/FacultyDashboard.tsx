@@ -10,9 +10,7 @@ import { CheckCircle, XCircle, Clock, Users, FileText, MessageSquare } from 'luc
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 interface Certificate {
   id: string;
@@ -49,8 +47,7 @@ const FacultyDashboard = () => {
   const [processingCert, setProcessingCert] = useState<string | null>(null);
   const [remarks, setRemarks] = useState<Record<string, string>>({});
   const [useMock, setUseMock] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (profile) {
@@ -561,7 +558,7 @@ const FacultyDashboard = () => {
                     const progress = studentCerts.length > 0 ? (approvedCerts / studentCerts.length) * 100 : 0;
 
                     return (
-                      <Card key={student.id} className="cursor-pointer hover:shadow-md" onClick={() => { setSelectedStudent(student); setPanelOpen(true); }}>
+                      <Card key={student.id} className="cursor-pointer hover:shadow-md" onClick={() => navigate(`/faculty/students/${student.id}${useMock ? '?mock=1' : ''}`)}>
                         <CardContent className="p-4">
                           <h3 className="font-semibold">{student.full_name}</h3>
                           <p className="text-sm text-muted-foreground">{student.email}</p>
@@ -592,85 +589,6 @@ const FacultyDashboard = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-xl">
-          <SheetHeader>
-            <SheetTitle>Student Progress</SheetTitle>
-          </SheetHeader>
-          {selectedStudent && (
-            <div className="mt-4 space-y-6">
-              <div>
-                <h3 className="font-semibold">{selectedStudent.full_name}</h3>
-                <p className="text-sm text-muted-foreground">{selectedStudent.email}</p>
-                {selectedStudent.student_id && (
-                  <p className="text-sm text-muted-foreground">ID: {selectedStudent.student_id}</p>
-                )}
-              </div>
-
-              {(() => {
-                const studentCerts = certificates.filter(c => c.student.id === selectedStudent.id);
-                const statusCounts = ['approved','pending','rejected'].map((s) => ({ name: s, value: studentCerts.filter(c => c.status === s).length }));
-                const byMonthMap = new Map<string, { month: string; uploads: number; approved: number }>();
-                studentCerts.forEach((c) => {
-                  const d = new Date(c.uploaded_at);
-                  const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-                  if (!byMonthMap.has(key)) byMonthMap.set(key, { month: key, uploads: 0, approved: 0 });
-                  const rec = byMonthMap.get(key)!;
-                  rec.uploads += 1;
-                  if (c.status === 'approved') rec.approved += 1;
-                });
-                const timeline = Array.from(byMonthMap.values()).sort((a,b)=>a.month.localeCompare(b.month));
-                const colors = { approved: '#16a34a', pending: '#eab308', rejected: '#dc2626' } as const;
-                return (
-                  <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Status Distribution</CardTitle>
-                        <CardDescription>Approved vs Pending vs Rejected</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ChartContainer config={{ approved:{label:'Approved', color: colors.approved}, pending:{label:'Pending', color: colors.pending}, rejected:{label:'Rejected', color: colors.rejected} }}>
-                          <BarChart data={statusCounts}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis allowDecimals={false} />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <Bar dataKey="value">
-                              {statusCounts.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={colors[entry.name as keyof typeof colors]} />
-                              ))}
-                            </Bar>
-                          </BarChart>
-                        </ChartContainer>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Activity Over Time</CardTitle>
-                        <CardDescription>Uploads and approvals by month</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <ChartContainer config={{ uploads:{label:'Uploads', color:'#3b82f6'}, approvedLine:{label:'Approved', color:'#16a34a'} }}>
-                          <LineChart data={timeline}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="month" />
-                            <YAxis allowDecimals={false} />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            <Line type="monotone" dataKey="uploads" stroke="#3b82f6" name="Uploads" />
-                            <Line type="monotone" dataKey="approved" stroke="#16a34a" name="Approved" />
-                          </LineChart>
-                        </ChartContainer>
-                      </CardContent>
-                    </Card>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 };
