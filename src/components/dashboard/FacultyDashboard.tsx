@@ -158,7 +158,7 @@ const FacultyDashboard = () => {
         console.error('Error fetching certificates:', error);
         toast({
           title: 'Error',
-          description: 'Failed to fetch certificates',
+          description: (error as any)?.message || 'Failed to fetch certificates',
           variant: 'destructive',
         });
       } else {
@@ -167,8 +167,13 @@ const FacultyDashboard = () => {
           student: item.student || { id: '', full_name: 'Unknown', email: 'Unknown' }
         })) || []);
       }
-    } catch (error) {
-      console.error('Error fetching certificates:', error);
+    } catch (err) {
+      console.error('Error fetching certificates:', err);
+      toast({
+        title: 'Error',
+        description: (err as any)?.message || 'Failed to fetch certificates',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
