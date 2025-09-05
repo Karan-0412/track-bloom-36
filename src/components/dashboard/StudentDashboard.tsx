@@ -17,6 +17,7 @@ interface Certificate {
   file_name: string;
   uploaded_at: string;
   rejection_reason?: string;
+  remark?: string;
 }
 
 const StudentDashboard = () => {

@@ -16,6 +16,7 @@ interface Certificate {
   file_name: string;
   uploaded_at: string;
   rejection_reason?: string;
+  remark?: string;
 }
 
 interface CertificatesSectionProps {
@@ -78,10 +79,10 @@ const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certificates 
           </div>
         </div>
         
-        {certificate.status === 'rejected' && certificate.rejection_reason && (
-          <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-xs">
-            <strong className="text-red-800">Rejection Reason:</strong>
-            <p className="text-red-700 mt-1">{certificate.rejection_reason}</p>
+        {(certificate.status === 'approved' || certificate.status === 'rejected') && (certificate.remark || certificate.rejection_reason) && (
+          <div className={`mt-3 p-2 border rounded text-xs ${certificate.status === 'rejected' ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+            <strong className={certificate.status === 'rejected' ? 'text-red-800' : 'text-green-800'}>Faculty Remark:</strong>
+            <p className={certificate.status === 'rejected' ? 'text-red-700 mt-1' : 'text-green-700 mt-1'}>{certificate.remark || certificate.rejection_reason}</p>
           </div>
         )}
         

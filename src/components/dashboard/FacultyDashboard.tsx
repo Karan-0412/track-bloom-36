@@ -8,6 +8,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, Clock, Users, FileText, MessageSquare } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useNavigate } from 'react-router-dom';
 
 interface Certificate {
   id: string;
@@ -19,6 +22,7 @@ interface Certificate {
   file_name: string;
   uploaded_at: string;
   rejection_reason?: string;
+  remark?: string;
   student: {
     id: string;
     full_name: string;
@@ -41,18 +45,77 @@ const FacultyDashboard = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [processingCert, setProcessingCert] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [remarks, setRemarks] = useState<Record<string, string>>({});
+  const [useMock, setUseMock] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (profile) {
-      fetchCertificates();
-      fetchStudents();
+      if (useMock) {
+        mockFetchCertificates();
+        mockFetchStudents();
+      } else {
+        fetchCertificates();
+        fetchStudents();
+      }
     }
-  }, [profile]);
+  }, [profile, useMock]);
+
+  const mockDelay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+  const mockFetchCertificates = async () => {
+    setLoading(true);
+    await mockDelay(500);
+    const data: Certificate[] = [
+      {
+        id: 'mock-1',
+        title: 'National Science Fair',
+        description: 'Participation certificate',
+        category: 'co_curricular',
+        status: 'pending',
+        file_url: 'https://example.com/cert1.pdf',
+        file_name: 'cert1.pdf',
+        uploaded_at: new Date(Date.now() - 86400000).toISOString(),
+        student: { id: 'stu-1', full_name: 'Alice Johnson', email: 'alice@example.edu', student_id: '2021-CSE-034' },
+      },
+      {
+        id: 'mock-2',
+        title: 'B.Tech Degree',
+        description: 'Verified by registrar',
+        category: 'academic',
+        status: 'approved',
+        file_url: 'https://example.com/cert2.pdf',
+        file_name: 'cert2.pdf',
+        uploaded_at: new Date(Date.now() - 172800000).toISOString(),
+        remark: 'Excellent achievement',
+        student: { id: 'stu-2', full_name: 'Bob Smith', email: 'bob@example.edu', student_id: '2020-EEE-112' },
+      },
+      {
+        id: 'mock-3',
+        title: 'Hackathon Winner',
+        description: 'First place',
+        category: 'co_curricular',
+        status: 'rejected',
+        file_url: 'https://example.com/cert3.pdf',
+        file_name: 'cert3.pdf',
+        uploaded_at: new Date(Date.now() - 259200000).toISOString(),
+        rejection_reason: 'Illegible scan',
+        remark: 'Please re-upload a clearer copy',
+        student: { id: 'stu-3', full_name: 'Carol Danvers', email: 'carol@example.edu', student_id: '2019-MECH-076' },
+      },
+    ];
+    setCertificates(data);
+    setLoading(false);
+  };
 
   const fetchCertificates = async () => {
     if (!profile) return;
-    
+
+    if (useMock) {
+      await mockFetchCertificates();
+      return;
+    }
+
     setLoading(true);
     try {
       let query = supabase
@@ -92,7 +155,7 @@ const FacultyDashboard = () => {
         console.error('Error fetching certificates:', error);
         toast({
           title: 'Error',
-          description: 'Failed to fetch certificates',
+          description: (error as any)?.message || 'Failed to fetch certificates',
           variant: 'destructive',
         });
       } else {
@@ -101,16 +164,35 @@ const FacultyDashboard = () => {
           student: item.student || { id: '', full_name: 'Unknown', email: 'Unknown' }
         })) || []);
       }
-    } catch (error) {
-      console.error('Error fetching certificates:', error);
+    } catch (err) {
+      console.error('Error fetching certificates:', err);
+      toast({
+        title: 'Error',
+        description: (err as any)?.message || 'Failed to fetch certificates',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const mockFetchStudents = async () => {
+    await mockDelay(300);
+    setStudents([
+      { id: 'stu-1', full_name: 'Alice Johnson', email: 'alice@example.edu', student_id: '2021-CSE-034' },
+      { id: 'stu-2', full_name: 'Bob Smith', email: 'bob@example.edu', student_id: '2020-EEE-112' },
+      { id: 'stu-3', full_name: 'Carol Danvers', email: 'carol@example.edu', student_id: '2019-MECH-076' },
+    ]);
+  };
+
   const fetchStudents = async () => {
     if (!profile) return;
-    
+
+    if (useMock) {
+      await mockFetchStudents();
+      return;
+    }
+
     try {
       let query = supabase
         .from('profiles')
@@ -131,21 +213,65 @@ const FacultyDashboard = () => {
 
       if (error) {
         console.error('Error fetching students:', error);
+        toast({
+          title: 'Error fetching students',
+          description: (error as any)?.message || JSON.stringify(error),
+          variant: 'destructive',
+        });
       } else {
         setStudents((data as Student[]) || []);
       }
-    } catch (error) {
-      console.error('Error fetching students:', error);
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      toast({
+        title: 'Error fetching students',
+        description: (err as any)?.message || JSON.stringify(err),
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleCertificateAction = async (certificateId: string, action: 'approve' | 'reject', reason?: string) => {
+  const handleCertificateAction = async (certificateId: string, action: 'approve' | 'reject', reason: string) => {
+    if (!reason || !reason.trim()) {
+      toast({
+        title: 'Remark required',
+        description: 'Please provide a remark before proceeding.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (useMock) {
+      setProcessingCert(certificateId);
+      try {
+        await mockDelay(700);
+        setCertificates((prev) => prev.map((c) =>
+          c.id === certificateId
+            ? {
+                ...c,
+                status: action === 'approve' ? 'approved' : 'rejected',
+                remark: reason,
+                rejection_reason: action === 'reject' ? reason : c.rejection_reason,
+              }
+            : c
+        ));
+        toast({ title: 'Success', description: `Certificate ${action}ed successfully!` });
+        setRemarks((prev) => ({ ...prev, [certificateId]: '' }));
+      } catch (e: any) {
+        toast({ title: 'Error', description: e?.message || 'Mock request failed', variant: 'destructive' });
+      } finally {
+        setProcessingCert(null);
+      }
+      return;
+    }
+
     setProcessingCert(certificateId);
     try {
       const updates: any = {
         status: action === 'approve' ? 'approved' : 'rejected',
         verified_by: profile?.id,
         verified_at: new Date().toISOString(),
+        remark: reason,
       };
 
       if (action === 'reject' && reason) {
@@ -168,7 +294,7 @@ const FacultyDashboard = () => {
 
       // Refresh certificates
       fetchCertificates();
-      setRejectionReason('');
+      setRemarks((prev) => ({ ...prev, [certificateId]: '' }));
     } catch (error: any) {
       console.error('Error updating certificate:', error);
       toast({
@@ -212,6 +338,10 @@ const FacultyDashboard = () => {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Faculty Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, {profile?.full_name}!</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="mock-mode">Mock mode</Label>
+          <Switch id="mock-mode" checked={useMock} onCheckedChange={setUseMock} />
         </div>
       </div>
 
@@ -316,26 +446,26 @@ const FacultyDashboard = () => {
                       </div>
                       
                       <div className="flex space-x-2">
-                        <Button
-                          onClick={() => handleCertificateAction(cert.id, 'approve')}
-                          disabled={processingCert === cert.id}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Approve
-                        </Button>
                         <div className="flex-1 flex space-x-2">
                           <Textarea
-                            placeholder="Reason for rejection (required)"
-                            value={rejectionReason}
-                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Remark (required)"
+                            value={remarks[cert.id] || ''}
+                            onChange={(e) => setRemarks((prev) => ({ ...prev, [cert.id]: e.target.value }))}
                             className="flex-1"
                             rows={1}
                           />
                           <Button
+                            onClick={() => handleCertificateAction(cert.id, 'approve', remarks[cert.id] || '')}
+                            disabled={processingCert === cert.id || !(remarks[cert.id] || '').trim()}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approve
+                          </Button>
+                          <Button
                             variant="destructive"
-                            onClick={() => handleCertificateAction(cert.id, 'reject', rejectionReason)}
-                            disabled={processingCert === cert.id || !rejectionReason.trim()}
+                            onClick={() => handleCertificateAction(cert.id, 'reject', remarks[cert.id] || '')}
+                            disabled={processingCert === cert.id || !(remarks[cert.id] || '').trim()}
                           >
                             <XCircle className="h-4 w-4 mr-2" />
                             Reject
@@ -426,9 +556,9 @@ const FacultyDashboard = () => {
                     const studentCerts = certificates.filter(cert => cert.student.id === student.id);
                     const approvedCerts = studentCerts.filter(cert => cert.status === 'approved').length;
                     const progress = studentCerts.length > 0 ? (approvedCerts / studentCerts.length) * 100 : 0;
-                    
+
                     return (
-                      <Card key={student.id}>
+                      <Card key={student.id} className="cursor-pointer hover:shadow-md" onClick={() => navigate(`/faculty/students/${student.id}${useMock ? '?mock=1' : ''}`)}>
                         <CardContent className="p-4">
                           <h3 className="font-semibold">{student.full_name}</h3>
                           <p className="text-sm text-muted-foreground">{student.email}</p>
