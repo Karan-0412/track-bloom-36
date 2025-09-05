@@ -141,16 +141,6 @@ const FacultyDashboard = () => {
   };
 
   const handleCertificateAction = async (certificateId: string, action: 'approve' | 'reject', reason: string) => {
-    // Teaching ID check
-    if (profile?.role !== 'faculty' || !('teaching_id' in (profile as any)) || !(profile as any).teaching_id || !(profile as any).teaching_id_verified) {
-      toast({
-        title: 'Action blocked',
-        description: 'Only faculty with a verified teaching ID can approve or reject certificates.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     if (!reason || !reason.trim()) {
       toast({
         title: 'Remark required',
