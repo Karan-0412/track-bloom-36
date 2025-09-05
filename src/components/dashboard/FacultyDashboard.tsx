@@ -19,6 +19,7 @@ interface Certificate {
   file_name: string;
   uploaded_at: string;
   rejection_reason?: string;
+  remark?: string;
   student: {
     id: string;
     full_name: string;
@@ -41,7 +42,7 @@ const FacultyDashboard = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [processingCert, setProcessingCert] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [remarks, setRemarks] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (profile) {
@@ -139,13 +140,33 @@ const FacultyDashboard = () => {
     }
   };
 
-  const handleCertificateAction = async (certificateId: string, action: 'approve' | 'reject', reason?: string) => {
+  const handleCertificateAction = async (certificateId: string, action: 'approve' | 'reject', reason: string) => {
+    // Teaching ID check
+    if (profile?.role !== 'faculty' || !('teaching_id' in (profile as any)) || !(profile as any).teaching_id || !(profile as any).teaching_id_verified) {
+      toast({
+        title: 'Action blocked',
+        description: 'Only faculty with a verified teaching ID can approve or reject certificates.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!reason || !reason.trim()) {
+      toast({
+        title: 'Remark required',
+        description: 'Please provide a remark before proceeding.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setProcessingCert(certificateId);
     try {
       const updates: any = {
         status: action === 'approve' ? 'approved' : 'rejected',
         verified_by: profile?.id,
         verified_at: new Date().toISOString(),
+        remark: reason,
       };
 
       if (action === 'reject' && reason) {
@@ -168,7 +189,7 @@ const FacultyDashboard = () => {
 
       // Refresh certificates
       fetchCertificates();
-      setRejectionReason('');
+      setRemarks((prev) => ({ ...prev, [certificateId]: '' }));
     } catch (error: any) {
       console.error('Error updating certificate:', error);
       toast({
@@ -316,26 +337,26 @@ const FacultyDashboard = () => {
                       </div>
                       
                       <div className="flex space-x-2">
-                        <Button
-                          onClick={() => handleCertificateAction(cert.id, 'approve')}
-                          disabled={processingCert === cert.id}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Approve
-                        </Button>
                         <div className="flex-1 flex space-x-2">
                           <Textarea
-                            placeholder="Reason for rejection (required)"
-                            value={rejectionReason}
-                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Remark (required)"
+                            value={remarks[cert.id] || ''}
+                            onChange={(e) => setRemarks((prev) => ({ ...prev, [cert.id]: e.target.value }))}
                             className="flex-1"
                             rows={1}
                           />
                           <Button
+                            onClick={() => handleCertificateAction(cert.id, 'approve', remarks[cert.id] || '')}
+                            disabled={processingCert === cert.id || !(remarks[cert.id] || '').trim()}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approve
+                          </Button>
+                          <Button
                             variant="destructive"
-                            onClick={() => handleCertificateAction(cert.id, 'reject', rejectionReason)}
-                            disabled={processingCert === cert.id || !rejectionReason.trim()}
+                            onClick={() => handleCertificateAction(cert.id, 'reject', remarks[cert.id] || '')}
+                            disabled={processingCert === cert.id || !(remarks[cert.id] || '').trim()}
                           >
                             <XCircle className="h-4 w-4 mr-2" />
                             Reject
