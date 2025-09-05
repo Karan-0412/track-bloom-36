@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,34 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ certificates }) => {
   const [customLinks, setCustomLinks] = useState<Array<{ label: string; url: string }>>([]);
   const [newCustomLabel, setNewCustomLabel] = useState('');
   const [newCustomUrl, setNewCustomUrl] = useState('');
+
+  const storageKey = profile ? `profile_links_${profile.id}` : null;
+
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setLinkedinUrl(parsed.linkedinUrl || '');
+        setGithubUrl(parsed.githubUrl || '');
+        setCustomLinks(Array.isArray(parsed.customLinks) ? parsed.customLinks : []);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [storageKey]);
+
+  const persistLinks = (next?: { linkedinUrl?: string; githubUrl?: string; customLinks?: Array<{label:string;url:string}> }) => {
+    if (!storageKey) return;
+    const data = {
+      linkedinUrl,
+      githubUrl,
+      customLinks,
+      ...next,
+    };
+    try { localStorage.setItem(storageKey, JSON.stringify(data)); } catch {}
+  };
   const [editForm, setEditForm] = useState({
     full_name: profile?.full_name || '',
     email: profile?.email || '',
@@ -227,14 +255,14 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ certificates }) => {
                   <Label htmlFor="linkedin">LinkedIn</Label>
                   <div className="flex gap-2">
                     <div className="inline-flex items-center px-2 border rounded-md text-sm text-muted-foreground"><Linkedin className="h-4 w-4 mr-1" />/</div>
-                    <Input id="linkedin" placeholder="linkedin.com/in/username" value={linkedinUrl} onChange={(e)=>setLinkedinUrl(e.target.value)} />
+                    <Input id="linkedin" placeholder="linkedin.com/in/username" value={linkedinUrl} onChange={(e)=>{ setLinkedinUrl(e.target.value); persistLinks({ linkedinUrl: e.target.value }); }} />
                   </div>
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="github">GitHub</Label>
                   <div className="flex gap-2">
                     <div className="inline-flex items-center px-2 border rounded-md text-sm text-muted-foreground"><Github className="h-4 w-4 mr-1" />/</div>
-                    <Input id="github" placeholder="github.com/username" value={githubUrl} onChange={(e)=>setGithubUrl(e.target.value)} />
+                    <Input id="github" placeholder="github.com/username" value={githubUrl} onChange={(e)=>{ setGithubUrl(e.target.value); persistLinks({ githubUrl: e.target.value }); }} />
                   </div>
                 </div>
               </div>
@@ -245,8 +273,12 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ certificates }) => {
                   <Input placeholder="Label (e.g., Portfolio)" value={newCustomLabel} onChange={(e)=>setNewCustomLabel(e.target.value)} />
                   <Input placeholder="https://example.com" value={newCustomUrl} onChange={(e)=>setNewCustomUrl(e.target.value)} />
                   <Button type="button" onClick={()=>{
-                    if (!newCustomLabel.trim() || !newCustomUrl.trim()) return;
-                    setCustomLinks([...customLinks, { label: newCustomLabel.trim(), url: newCustomUrl.trim() }]);
+                    const label = newCustomLabel.trim();
+                    const url = newCustomUrl.trim();
+                    if (!label || !url) return;
+                    const next = [...customLinks, { label, url }];
+                    setCustomLinks(next);
+                    persistLinks({ customLinks: next });
                     setNewCustomLabel('');
                     setNewCustomUrl('');
                   }}>Add</Button>
@@ -254,9 +286,16 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ certificates }) => {
                 {customLinks.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {customLinks.map((l, idx) => (
-                      <Button key={idx} variant="secondary" size="sm" asChild>
-                        <a href={/^https?:\/\//i.test(l.url) ? l.url : `https://${l.url}`} target="_blank" rel="noreferrer noopener"><LinkIcon className="h-3 w-3 mr-1" />{l.label}</a>
-                      </Button>
+                      <div key={idx} className="flex items-center gap-2">
+                        <Button variant="secondary" size="sm" asChild>
+                          <a href={/^https?:\/\//i.test(l.url) ? l.url : `https://${l.url}`} target="_blank" rel="noreferrer noopener"><LinkIcon className="h-3 w-3 mr-1" />{l.label}</a>
+                        </Button>
+                        <Button variant="outline" size="icon" onClick={() => {
+                          const next = customLinks.filter((_, i) => i !== idx);
+                          setCustomLinks(next);
+                          persistLinks({ customLinks: next });
+                        }}>×</Button>
+                      </div>
                     ))}
                   </div>
                 )}
