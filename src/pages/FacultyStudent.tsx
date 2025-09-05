@@ -126,7 +126,13 @@ export default function FacultyStudentPage() {
               <p className="text-muted-foreground">{student.full_name} • {student.email} {student.student_id ? `• ${student.student_id}` : ''}</p>
             )}
           </div>
-          <Button variant="outline" onClick={() => navigate(-1)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (window.history.length > 1) navigate(-1);
+              else navigate('/');
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" /> Back
           </Button>
         </div>
