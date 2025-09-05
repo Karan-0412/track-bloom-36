@@ -637,17 +637,15 @@ const FacultyDashboard = () => {
                       </CardHeader>
                       <CardContent>
                         <ChartContainer config={{ uploads:{label:'Uploads', color:'#3b82f6'}, approvedLine:{label:'Approved', color:'#16a34a'} }}>
-                          <ResponsiveContainer>
-                            <LineChart data={timeline}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="month" />
-                              <YAxis allowDecimals={false} />
-                              <ChartTooltip content={<ChartTooltipContent />} />
-                              <ChartLegend content={<ChartLegendContent />} />
-                              <Line type="monotone" dataKey="uploads" stroke="#3b82f6" name="Uploads" />
-                              <Line type="monotone" dataKey="approved" stroke="#16a34a" name="Approved" />
-                            </LineChart>
-                          </ResponsiveContainer>
+                          <LineChart data={timeline}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis allowDecimals={false} />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <ChartLegend content={<ChartLegendContent />} />
+                            <Line type="monotone" dataKey="uploads" stroke="#3b82f6" name="Uploads" />
+                            <Line type="monotone" dataKey="approved" stroke="#16a34a" name="Approved" />
+                          </LineChart>
                         </ChartContainer>
                       </CardContent>
                     </Card>
