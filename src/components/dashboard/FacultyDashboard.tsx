@@ -615,19 +615,17 @@ const FacultyDashboard = () => {
                       </CardHeader>
                       <CardContent>
                         <ChartContainer config={{ approved:{label:'Approved', color: colors.approved}, pending:{label:'Pending', color: colors.pending}, rejected:{label:'Rejected', color: colors.rejected} }}>
-                          <ResponsiveContainer>
-                            <BarChart data={statusCounts}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="name" />
-                              <YAxis allowDecimals={false} />
-                              <ChartTooltip content={<ChartTooltipContent />} />
-                              <Bar dataKey="value">
-                                {statusCounts.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={colors[entry.name as keyof typeof colors]} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
+                          <BarChart data={statusCounts}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis allowDecimals={false} />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Bar dataKey="value">
+                              {statusCounts.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={colors[entry.name as keyof typeof colors]} />
+                              ))}
+                            </Bar>
+                          </BarChart>
                         </ChartContainer>
                       </CardContent>
                     </Card>
