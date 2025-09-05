@@ -322,6 +322,10 @@ const FacultyDashboard = () => {
           <h1 className="text-3xl font-bold text-foreground">Faculty Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, {profile?.full_name}!</p>
         </div>
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="mock-mode">Mock mode</Label>
+          <Switch id="mock-mode" checked={useMock} onCheckedChange={setUseMock} />
+        </div>
       </div>
 
       {/* Overview Cards */}
@@ -409,7 +413,7 @@ const FacultyDashboard = () => {
                             Student: {cert.student.full_name} ({cert.student.email})
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Category: {cert.category.replace('_', ' ')} ��� Uploaded: {new Date(cert.uploaded_at).toLocaleDateString()}
+                            Category: {cert.category.replace('_', ' ')} • Uploaded: {new Date(cert.uploaded_at).toLocaleDateString()}
                           </p>
                           {cert.description && (
                             <p className="text-sm text-muted-foreground mt-2">{cert.description}</p>
