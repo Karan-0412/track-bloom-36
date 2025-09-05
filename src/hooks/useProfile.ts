@@ -12,6 +12,8 @@ export interface Profile {
   student_id?: string;
   faculty_id?: string;
   assigned_faculty_id?: string;
+  teaching_id?: string | null;
+  teaching_id_verified?: boolean | null;
   created_at: string;
   updated_at: string;
 }
