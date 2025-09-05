@@ -22,6 +22,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ certificates }) => {
   const { profile, updateProfile } = useProfile();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     full_name: profile?.full_name || '',
     email: profile?.email || '',
