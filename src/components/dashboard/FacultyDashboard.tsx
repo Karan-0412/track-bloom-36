@@ -45,6 +45,7 @@ const FacultyDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [processingCert, setProcessingCert] = useState<string | null>(null);
   const [remarks, setRemarks] = useState<Record<string, string>>({});
+  const [useMock, setUseMock] = useState(false);
 
   useEffect(() => {
     if (profile) {
