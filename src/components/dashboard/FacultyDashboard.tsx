@@ -224,6 +224,30 @@ const FacultyDashboard = () => {
       return;
     }
 
+    if (useMock) {
+      setProcessingCert(certificateId);
+      try {
+        await mockDelay(700);
+        setCertificates((prev) => prev.map((c) =>
+          c.id === certificateId
+            ? {
+                ...c,
+                status: action === 'approve' ? 'approved' : 'rejected',
+                remark: reason,
+                rejection_reason: action === 'reject' ? reason : c.rejection_reason,
+              }
+            : c
+        ));
+        toast({ title: 'Success', description: `Certificate ${action}ed successfully!` });
+        setRemarks((prev) => ({ ...prev, [certificateId]: '' }));
+      } catch (e: any) {
+        toast({ title: 'Error', description: e?.message || 'Mock request failed', variant: 'destructive' });
+      } finally {
+        setProcessingCert(null);
+      }
+      return;
+    }
+
     setProcessingCert(certificateId);
     try {
       const updates: any = {
@@ -385,7 +409,7 @@ const FacultyDashboard = () => {
                             Student: {cert.student.full_name} ({cert.student.email})
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Category: {cert.category.replace('_', ' ')} • Uploaded: {new Date(cert.uploaded_at).toLocaleDateString()}
+                            Category: {cert.category.replace('_', ' ')} ��� Uploaded: {new Date(cert.uploaded_at).toLocaleDateString()}
                           </p>
                           {cert.description && (
                             <p className="text-sm text-muted-foreground mt-2">{cert.description}</p>
