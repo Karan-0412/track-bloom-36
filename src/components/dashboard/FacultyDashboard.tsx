@@ -108,7 +108,12 @@ const FacultyDashboard = () => {
 
   const fetchCertificates = async () => {
     if (!profile) return;
-    
+
+    if (useMock) {
+      await mockFetchCertificates();
+      return;
+    }
+
     setLoading(true);
     try {
       let query = supabase
