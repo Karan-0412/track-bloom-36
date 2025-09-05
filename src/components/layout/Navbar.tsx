@@ -1,11 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, User } from 'lucide-react';
-import NotificationsDropdown from '../dashboard/student/NotificationsDropdown';
 
 const Navbar = () => {
   const { signOut } = useAuth();
@@ -33,26 +31,29 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-primary">
+            <h1 className="text-xl font-semibold text-foreground">
               Student Management System
-            </Link>
+            </h1>
           </div>
           
           <div className="flex items-center space-x-4">
             {profile && (
-              <>
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm font-medium">{profile.full_name}</span>
-                  <span className="text-xs text-muted-foreground capitalize">({profile.role})</span>
-                </div>
-                {profile.role === 'student' && <NotificationsDropdown />}
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </>
+              <div className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span className="text-sm text-muted-foreground">
+                  {profile.full_name} ({profile.role})
+                </span>
+              </div>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center space-x-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sign Out</span>
+            </Button>
           </div>
         </div>
       </div>
