@@ -59,6 +59,53 @@ const FacultyDashboard = () => {
     }
   }, [profile, useMock]);
 
+  const mockDelay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+  const mockFetchCertificates = async () => {
+    setLoading(true);
+    await mockDelay(500);
+    const data: Certificate[] = [
+      {
+        id: 'mock-1',
+        title: 'National Science Fair',
+        description: 'Participation certificate',
+        category: 'co_curricular',
+        status: 'pending',
+        file_url: 'https://example.com/cert1.pdf',
+        file_name: 'cert1.pdf',
+        uploaded_at: new Date(Date.now() - 86400000).toISOString(),
+        student: { id: 'stu-1', full_name: 'Alice Johnson', email: 'alice@example.edu', student_id: '2021-CSE-034' },
+      },
+      {
+        id: 'mock-2',
+        title: 'B.Tech Degree',
+        description: 'Verified by registrar',
+        category: 'academic',
+        status: 'approved',
+        file_url: 'https://example.com/cert2.pdf',
+        file_name: 'cert2.pdf',
+        uploaded_at: new Date(Date.now() - 172800000).toISOString(),
+        remark: 'Excellent achievement',
+        student: { id: 'stu-2', full_name: 'Bob Smith', email: 'bob@example.edu', student_id: '2020-EEE-112' },
+      },
+      {
+        id: 'mock-3',
+        title: 'Hackathon Winner',
+        description: 'First place',
+        category: 'co_curricular',
+        status: 'rejected',
+        file_url: 'https://example.com/cert3.pdf',
+        file_name: 'cert3.pdf',
+        uploaded_at: new Date(Date.now() - 259200000).toISOString(),
+        rejection_reason: 'Illegible scan',
+        remark: 'Please re-upload a clearer copy',
+        student: { id: 'stu-3', full_name: 'Carol Danvers', email: 'carol@example.edu', student_id: '2019-MECH-076' },
+      },
+    ];
+    setCertificates(data);
+    setLoading(false);
+  };
+
   const fetchCertificates = async () => {
     if (!profile) return;
     
