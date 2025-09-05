@@ -211,11 +211,21 @@ const FacultyDashboard = () => {
 
       if (error) {
         console.error('Error fetching students:', error);
+        toast({
+          title: 'Error fetching students',
+          description: (error as any)?.message || JSON.stringify(error),
+          variant: 'destructive',
+        });
       } else {
         setStudents((data as Student[]) || []);
       }
-    } catch (error) {
-      console.error('Error fetching students:', error);
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      toast({
+        title: 'Error fetching students',
+        description: (err as any)?.message || JSON.stringify(err),
+        variant: 'destructive',
+      });
     }
   };
 
