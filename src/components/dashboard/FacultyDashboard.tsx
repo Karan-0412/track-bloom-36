@@ -49,10 +49,15 @@ const FacultyDashboard = () => {
 
   useEffect(() => {
     if (profile) {
-      fetchCertificates();
-      fetchStudents();
+      if (useMock) {
+        mockFetchCertificates();
+        mockFetchStudents();
+      } else {
+        fetchCertificates();
+        fetchStudents();
+      }
     }
-  }, [profile]);
+  }, [profile, useMock]);
 
   const fetchCertificates = async () => {
     if (!profile) return;
