@@ -4,6 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, User } from 'lucide-react';
+import DarkModeToggle from './DarkModeToggle';
+import NotificationPanel from '@/components/notifications/NotificationPanel';
 
 const Navbar = () => {
   const { signOut } = useAuth();
@@ -45,6 +47,8 @@ const Navbar = () => {
                 </span>
               </div>
             )}
+            <NotificationPanel />
+            <DarkModeToggle />
             <Button
               variant="outline"
               size="sm"
