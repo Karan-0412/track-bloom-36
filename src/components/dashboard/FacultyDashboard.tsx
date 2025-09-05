@@ -180,7 +180,12 @@ const FacultyDashboard = () => {
 
   const fetchStudents = async () => {
     if (!profile) return;
-    
+
+    if (useMock) {
+      await mockFetchStudents();
+      return;
+    }
+
     try {
       let query = supabase
         .from('profiles')
