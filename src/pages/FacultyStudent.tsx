@@ -99,6 +99,22 @@ export default function FacultyStudentPage() {
     ['approved','pending','rejected'].map(name => ({ name, value: certs.filter(c=>c.status===name).length }))
   ), [certs]);
 
+  const categoryCounts = useMemo(() => (
+    ['academic','co_curricular'].map(name => ({ name, value: certs.filter(c=>c.category===name).length }))
+  ), [certs]);
+
+  const categoryTimeline = useMemo(() => {
+    const map = new Map<string, { month: string; academic: number; co_curricular: number }>();
+    certs.forEach(c => {
+      const d = new Date(c.uploaded_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      if (!map.has(key)) map.set(key, { month: key, academic: 0, co_curricular: 0 });
+      const rec = map.get(key)!;
+      if (c.category === 'academic') rec.academic += 1; else rec.co_curricular += 1;
+    });
+    return Array.from(map.values()).sort((a,b)=>a.month.localeCompare(b.month));
+  }, [certs]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -182,6 +198,50 @@ export default function FacultyStudentPage() {
                       <ChartLegend content={<ChartLegendContent />} />
                       <Line type="monotone" dataKey="uploads" stroke="#3b82f6" name="Uploads" />
                       <Line type="monotone" dataKey="approved" stroke="#16a34a" name="Approved" />
+                    </LineChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Category Distribution</CardTitle>
+                  <CardDescription>Academic vs Co-Curricular totals</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={{ academic:{label:'Academic', color:'#2563eb'}, co_curricular:{label:'Co-Curricular', color:'#06b6d4'} }}>
+                    <BarChart data={categoryCounts}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" tickFormatter={(v)=>String(v).replace('_',' ')} />
+                      <YAxis allowDecimals={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="value">
+                        {categoryCounts.map((entry, idx) => (
+                          <Cell key={idx} fill={(entry.name==='academic' && '#2563eb') || '#06b6d4'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Category Trend</CardTitle>
+                  <CardDescription>Uploads by month, per category</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={{ academic:{label:'Academic', color:'#2563eb'}, co_curricular:{label:'Co-Curricular', color:'#06b6d4'} }}>
+                    <LineChart data={categoryTimeline}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis allowDecimals={false} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Line type="monotone" dataKey="academic" stroke="#2563eb" name="Academic" />
+                      <Line type="monotone" dataKey="co_curricular" stroke="#06b6d4" name="Co-Curricular" />
                     </LineChart>
                   </ChartContainer>
                 </CardContent>
