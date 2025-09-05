@@ -169,6 +169,15 @@ const FacultyDashboard = () => {
     }
   };
 
+  const mockFetchStudents = async () => {
+    await mockDelay(300);
+    setStudents([
+      { id: 'stu-1', full_name: 'Alice Johnson', email: 'alice@example.edu', student_id: '2021-CSE-034' },
+      { id: 'stu-2', full_name: 'Bob Smith', email: 'bob@example.edu', student_id: '2020-EEE-112' },
+      { id: 'stu-3', full_name: 'Carol Danvers', email: 'carol@example.edu', student_id: '2019-MECH-076' },
+    ]);
+  };
+
   const fetchStudents = async () => {
     if (!profile) return;
     
